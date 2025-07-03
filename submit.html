@@ -99,7 +99,18 @@
 <body>
     <div class="window">
         <h1>Submit Your Prediction</h1>
+        <div style="background: #e2cfa3; border: 2px solid #3a2c1a; padding: 12px; margin-bottom: 20px; font-size: 11px; text-transform: none;">
+            <strong>Setup Required:</strong> You need a GitHub token to submit predictions. 
+            <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color: #3a2c1a; text-decoration: underline;">Create a fine-grained token here</a> with "Issues: Read and write" permission for the <code>Lioncour/battleoftheplans</code> repository.
+        </div>
         <form id="forecastForm">
+            <div>
+                <label for="githubToken">GitHub Token (Required)</label><br>
+                <input type="password" id="githubToken" name="githubToken" required placeholder="Enter your GitHub token" style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                <small style="font-size: 10px; color: #7c6a4a; text-transform: none;">
+                    Get a token from GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens
+                </small>
+            </div>
             <div>
                 <label for="name">Your Name</label><br>
                 <select id="name" name="name" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%;">
@@ -135,7 +146,7 @@
         </form>
         <div class="thankyou" id="thankyou" style="display:none;">
             Thank you for your prediction!<br>
-            <span style="font-size:0.9rem; color:#3a2c1a;">(Your answer is not stored, but we trust you!)</span>
+            <span style="font-size:0.9rem; color:#3a2c1a;">Your prediction has been saved and will appear on the main page.</span>
         </div>
         <a href="index.html" class="back-link">&larr; Back to Battle of the Plans</a>
     </div>
@@ -230,10 +241,9 @@
             }
         }
         
-        async function createPredictionIssue(name, forecastId, prediction) {
-            const token = localStorage.getItem('github_token');
+        async function createPredictionIssue(name, forecastId, prediction, token) {
             if (!token) {
-                alert('GitHub token not set. Please set it in the admin panel first.');
+                alert('GitHub token is required to submit predictions.');
                 return null;
             }
             
@@ -284,12 +294,13 @@
         document.getElementById('forecastForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            const token = document.getElementById('githubToken').value;
             const name = document.getElementById('name').value;
             const forecast = document.getElementById('forecast').value;
             const prediction = document.getElementById('prediction').value;
             
             // Create GitHub issue for the prediction
-            const issue = await createPredictionIssue(name, forecast, prediction);
+            const issue = await createPredictionIssue(name, forecast, prediction, token);
             
             if (issue) {
                 this.style.display = 'none';
