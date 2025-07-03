@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Your Forecast - Battle of the Plans</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f5e6c5;
+            color: #3a2c1a;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .window {
+            border: 4px solid #3a2c1a;
+            background: #f9ecd7;
+            box-sizing: border-box;
+            padding: 32px 24px 24px 24px;
+            margin: 0;
+            min-width: 320px;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        label {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        input, textarea {
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 8px;
+            border: 2px solid #bba77a;
+            border-radius: 4px;
+            background: #fff6e0;
+            color: #3a2c1a;
+            outline: none;
+            resize: none;
+        }
+        input:focus, textarea:focus {
+            border-color: #a76d4d;
+        }
+        button {
+            font-family: inherit;
+            font-size: 1rem;
+            background: #bba77a;
+            color: #3a2c1a;
+            border: 2px solid #3a2c1a;
+            border-radius: 4px;
+            padding: 10px 0;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:hover {
+            background: #a76d4d;
+            color: #fff6e0;
+        }
+        .thankyou {
+            text-align: center;
+            font-size: 1.1rem;
+            color: #a76d4d;
+            margin-top: 2rem;
+        }
+        .back-link {
+            display: block;
+            margin-top: 2rem;
+            text-align: center;
+            color: #3a2c1a;
+            text-decoration: underline;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 500px) {
+            .window { min-width: 0; width: 98vw; padding: 16px 4vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <h1>Submit Your Forecast</h1>
+        <form id="forecastForm">
+            <div>
+                <label for="name">Your Name</label><br>
+                <input type="text" id="name" name="name" required maxlength="32">
+            </div>
+            <div>
+                <label for="question">Forecast Question</label><br>
+                <input type="text" id="question" name="question" required maxlength="100">
+            </div>
+            <div>
+                <label for="prediction">Your Prediction</label><br>
+                <textarea id="prediction" name="prediction" rows="3" required maxlength="200"></textarea>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+        <div class="thankyou" id="thankyou" style="display:none;">
+            Thank you for your prediction!<br>
+            <span style="font-size:0.9rem; color:#3a2c1a;">(Your answer is not stored, but we trust you!)</span>
+        </div>
+        <a href="index.html" class="back-link">&larr; Back to Battle of the Plans</a>
+    </div>
+    <script>
+        document.getElementById('forecastForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.style.display = 'none';
+            document.getElementById('thankyou').style.display = 'block';
+        });
+    </script>
+</body>
+</html> 
