@@ -143,13 +143,27 @@
                 <input type="text" id="title" required maxlength="100">
             </div>
             <div class="form-group">
-                <label for="date">Due Date</label>
-                <input type="date" id="date" required>
+                <label for="forecastType">Forecast Type</label>
+                <select id="forecastType" required onchange="updateTypeFields()">
+                    <option value="">Select type...</option>
+                    <option value="date">Date</option>
+                    <option value="number">Number</option>
+                    <option value="gps">GPS Location</option>
+                    <option value="list">Predefined List</option>
+                    <option value="boolean">Yes/No</option>
+                </select>
+            </div>
+            <div class="form-group" id="dueDateGroup" style="display: none;">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate">
+            </div>
+            <div class="form-group" id="listOptionsGroup" style="display: none;">
+                <label for="listOptions">List Options (one per line)</label>
+                <textarea id="listOptions" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
             </div>
             <div class="form-group">
-                <label for="type">Type</label>
-                <select id="type" required>
-                    <option value="">Select type...</option>
+                <label for="status">Status</label>
+                <select id="status" required>
                     <option value="OPEN">Open</option>
                     <option value="CLOSED">Closed</option>
                     <option value="RESOLVED">Resolved</option>
@@ -184,6 +198,23 @@
                 document.getElementById('githubToken').value = '';
             } else {
                 showStatus('Please enter a token', 'error');
+            }
+        }
+        
+        function updateTypeFields() {
+            const forecastType = document.getElementById('forecastType').value;
+            const dueDateGroup = document.getElementById('dueDateGroup');
+            const listOptionsGroup = document.getElementById('listOptionsGroup');
+            
+            // Hide all type-specific fields
+            dueDateGroup.style.display = 'none';
+            listOptionsGroup.style.display = 'none';
+            
+            // Show relevant fields based on type
+            if (forecastType === 'date') {
+                dueDateGroup.style.display = 'block';
+            } else if (forecastType === 'list') {
+                listOptionsGroup.style.display = 'block';
             }
         }
         
@@ -346,17 +377,39 @@
             e.preventDefault();
             
             const title = document.getElementById('title').value;
-            const date = document.getElementById('date').value;
-            const type = document.getElementById('type').value;
+            const forecastType = document.getElementById('forecastType').value;
+            const dueDate = document.getElementById('dueDate').value;
+            const listOptions = document.getElementById('listOptions').value;
+            const status = document.getElementById('status').value;
             
-            const body = `Due Date: ${date}\nType: ${type}\n\nThis is a forecast for the Battle of Plans game.`;
-            const labels = ['forecast', type.toLowerCase()];
+            // Validate required fields based on type
+            if (forecastType === 'date' && !dueDate) {
+                showStatus('Due date is required for date forecasts', 'error');
+                return;
+            }
+            if (forecastType === 'list' && !listOptions.trim()) {
+                showStatus('List options are required for list forecasts', 'error');
+                return;
+            }
+            
+            let body = `**Forecast Type:** ${forecastType}\n**Status:** ${status}\n\n`;
+            
+            if (forecastType === 'date') {
+                body += `**Due Date:** ${dueDate}\n`;
+            } else if (forecastType === 'list') {
+                body += `**List Options:**\n${listOptions}\n`;
+            }
+            
+            body += `\nThis is a forecast for the Battle of Plans game.`;
+            
+            const labels = ['forecast', forecastType, status.toLowerCase()];
             
             const issue = await createGitHubIssue(title, body, labels);
             
             if (issue) {
                 showStatus('Forecast added successfully!');
                 this.reset();
+                updateTypeFields(); // Reset the dynamic fields
                 loadForecasts();
             }
         });

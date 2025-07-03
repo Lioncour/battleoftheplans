@@ -113,7 +113,7 @@
             </div>
             <div>
                 <label for="forecast">Select Forecast</label><br>
-                <select id="forecast" name="forecast" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%;">
+                <select id="forecast" name="forecast" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%;" onchange="updatePredictionField()">
                     <option value="">Choose a forecast...</option>
                     <option value="1">Hvor mange slutter i Origo før vi flytter til Helsfyr</option>
                     <option value="2">Blir Oslonøkkelen en del av KS</option>
@@ -127,9 +127,9 @@
                     <option value="10">Will the company expand internationally?</option>
                 </select>
             </div>
-            <div>
+            <div id="predictionField">
                 <label for="prediction">Your Prediction</label><br>
-                <textarea id="prediction" name="prediction" rows="3" required maxlength="200"></textarea>
+                <textarea id="prediction" name="prediction" rows="3" required maxlength="200" placeholder="Enter your prediction..."></textarea>
             </div>
             <button type="submit">Submit</button>
         </form>
@@ -142,6 +142,93 @@
     <script>
         const REPO_OWNER = 'Lioncour';
         const REPO_NAME = 'battleoftheplans';
+        
+        // Forecast type definitions (you can update these based on your actual forecasts)
+        const forecastTypes = {
+            '1': 'number', // Hvor mange slutter i Origo før vi flytter til Helsfyr
+            '2': 'boolean', // Blir Oslonøkkelen en del av KS
+            '3': 'boolean', // Angrer Isak på oppsigelsen sin
+            '4': 'boolean', // Blir Bernard sjef over Punkt
+            '5': 'boolean', // Får Oslonøkkelen eget Teamrom
+            '6': 'number', // Hva koster klokka til Mini-Tangen
+            '7': 'list', // Hva blir den nye bilen til Thor
+            '8': 'boolean', // Will the Q4 marketing campaign launch?
+            '9': 'boolean', // Will the team win an industry award?
+            '10': 'boolean' // Will the company expand internationally?
+        };
+        
+        // List options for specific forecasts
+        const listOptions = {
+            '7': ['Tesla Model 3', 'BMW i4', 'Audi e-tron', 'Volkswagen ID.4', 'Other']
+        };
+        
+        function updatePredictionField() {
+            const forecastId = document.getElementById('forecast').value;
+            const predictionField = document.getElementById('predictionField');
+            const predictionInput = document.getElementById('prediction');
+            
+            if (!forecastId) {
+                predictionField.innerHTML = `
+                    <label for="prediction">Your Prediction</label><br>
+                    <textarea id="prediction" name="prediction" rows="3" required maxlength="200" placeholder="Enter your prediction..."></textarea>
+                `;
+                return;
+            }
+            
+            const forecastType = forecastTypes[forecastId];
+            
+            switch (forecastType) {
+                case 'date':
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction (Date)</label><br>
+                        <input type="date" id="prediction" name="prediction" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                    `;
+                    break;
+                    
+                case 'number':
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction (Number)</label><br>
+                        <input type="number" id="prediction" name="prediction" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                    `;
+                    break;
+                    
+                case 'gps':
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction (GPS Coordinates)</label><br>
+                        <input type="text" id="prediction" name="prediction" required placeholder="e.g., 59.9139, 10.7522" style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                    `;
+                    break;
+                    
+                case 'list':
+                    const options = listOptions[forecastId] || ['Option 1', 'Option 2', 'Option 3'];
+                    const optionsHtml = options.map(option => `<option value="${option}">${option}</option>`).join('');
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction</label><br>
+                        <select id="prediction" name="prediction" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                            <option value="">Choose an option...</option>
+                            ${optionsHtml}
+                        </select>
+                    `;
+                    break;
+                    
+                case 'boolean':
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction</label><br>
+                        <select id="prediction" name="prediction" required style="font-family: inherit; font-size: 1rem; padding: 8px; border: 2px solid #bba77a; border-radius: 4px; background: #fff6e0; color: #3a2c1a; outline: none; width: 100%; box-sizing: border-box;">
+                            <option value="">Choose...</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    `;
+                    break;
+                    
+                default:
+                    predictionField.innerHTML = `
+                        <label for="prediction">Your Prediction</label><br>
+                        <textarea id="prediction" name="prediction" rows="3" required maxlength="200" placeholder="Enter your prediction..."></textarea>
+                    `;
+            }
+        }
         
         async function createPredictionIssue(name, forecastId, prediction) {
             const token = localStorage.getItem('github_token');
