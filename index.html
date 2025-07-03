@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle of Plans</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background: #f5e6c5;
+            color: #3a2c1a;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            text-transform: uppercase;
+            width: 100vw;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        .window {
+            border: 4px solid #3a2c1a;
+            background: #f9ecd7;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+        .window-header {
+            background: #e2cfa3;
+            border-bottom: 3px double #3a2c1a;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            width: 100vw;
+            box-sizing: border-box;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr 336px;
+            grid-template-rows: 60px 1fr 60px;
+            width: 100vw;
+            box-sizing: border-box;
+            grid-template-areas:
+                "header header header"
+                "sidebar content timeline"
+                ". . .";
+            gap: 8px;
+            padding-right: 16px;
+            margin-top: -24px;
+        }
+        .header {
+            grid-area: header;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            grid-area: sidebar;
+            min-width: 220px;
+            max-width: 340px;
+            height: 100%;
+        }
+        .content {
+            grid-area: content;
+            min-width: 0;
+            height: 100%;
+        }
+        .timeline-section {
+            grid-area: timeline;
+            width: 336px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-right: 0;
+            margin-right: 0;
+            margin-top: 0;
+        }
+        .section-title {
+            background: #e2cfa3;
+            border-bottom: 2px solid #3a2c1a;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .leaderboard, .forecasts-list {
+            padding: 16px;
+        }
+        .leaderboard-entry {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #bba77a;
+            padding: 8px 0;
+            gap: 12px;
+        }
+        .leaderboard-entry:last-child {
+            border-bottom: none;
+        }
+        .leaderboard-avatar {
+            width: 32px;
+            height: 32px;
+            image-rendering: pixelated;
+            border: 2px solid #3a2c1a;
+            background: #e2cfa3;
+            margin-right: 8px;
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .leaderboard-avatar:hover {
+            transform: scale(5);
+            z-index: 1002;
+            transform-origin: center;
+        }
+        .leaderboard-score {
+            margin-left: auto;
+            font-weight: bold;
+        }
+        .forecast-card {
+            border: 2px solid #3a2c1a;
+            background: #f9ecd7;
+            margin-bottom: 16px;
+            padding: 0;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+        .forecast-card.expanded {
+            background: #e2cfa3;
+        }
+        .forecast-header {
+            font-weight: bold;
+            padding: 12px 16px 8px 16px;
+            margin: 0;
+            text-align: left;
+        }
+        .forecast-meta {
+            color: #7c6a4a;
+            font-size: 11px;
+            margin-bottom: 8px;
+            padding-left: 16px;
+        }
+        .predictions-grid {
+            display: flex;
+            gap: 16px;
+            padding-left: 16px;
+            padding-bottom: 12px;
+        }
+        .prediction-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #e2cfa3;
+            border: 1px solid #3a2c1a;
+            padding: 4px 8px;
+        }
+        .prediction-avatar {
+            width: 20px;
+            height: 20px;
+            image-rendering: pixelated;
+            border: 1px solid #3a2c1a;
+            background: #f9ecd7;
+            transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+        }
+        .prediction-avatar:hover {
+            transform: scale(5);
+            z-index: 1002;
+            transform-origin: center;
+        }
+        .prediction-text {
+            font-size: 11px;
+        }
+        
+        /* Pixel Scale Animation */
+        @keyframes pixel-scale {
+            0% {
+                transform: scale(1);
+                filter: contrast(1) saturate(1) drop-shadow(0 0 0px #fff6e0);
+            }
+            25% {
+                transform: scale(2) skewX(1deg);
+                filter: contrast(1.4) saturate(1.1) drop-shadow(0 0 4px #fff6e0);
+            }
+            50% {
+                transform: scale(3.5) skewX(-1deg);
+                filter: contrast(1.6) saturate(1.15) drop-shadow(0 0 8px #fff6e0);
+            }
+            75% {
+                transform: scale(4.5) skewX(0.5deg);
+                filter: contrast(1.7) saturate(1.18) drop-shadow(0 0 10px #fff6e0);
+            }
+            100% {
+                transform: scale(5);
+                filter: contrast(1.8) saturate(1.2) drop-shadow(0 0 12px #fff6e0);
+            }
+        }
+        .forecast-details {
+            display: none;
+        }
+        .forecast-card.expanded .forecast-details {
+            display: block;
+        }
+        .timeline-header {
+            background: #e2cfa3;
+            border-bottom: 2px solid #3a2c1a;
+            padding: 8px 0 8px 16px;
+            font-size: 13px;
+            font-weight: bold;
+            width: 100%;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .vertical-timeline {
+            width: 100%;
+            max-width: 336px;
+            height: 584px;
+            margin: 0 0 16px 0;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .timeline-vertical-line {
+            position: absolute;
+            left: 50%;
+            width: 4px;
+            height: calc(100% - 48px - 8px);
+            background: #3a2c1a;
+            transform: translateX(-50%);
+            z-index: 1;
+        }
+        .vertical-month-marker {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .vertical-month-dot {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background: #f5e6c5;
+            border: 4px solid #3a2c1a;
+            border-radius: 50%;
+            margin: 0;
+            z-index: 2;
+        }
+        .vertical-month-label {
+            font-size: 11px;
+            color: #3a2c1a;
+            margin-left: 32px;
+            white-space: nowrap;
+            position: relative;
+            left: 50%;
+            transform: translateX(8px);
+            z-index: 3;
+        }
+        .timeline-placeholder {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #7c6a4a;
+            font-size: 11px;
+            text-align: center;
+            width: 120px;
+        }
+        .retro-btn {
+            font-family: inherit;
+            font-size: 13px;
+            text-transform: uppercase;
+            background: #e2cfa3;
+            border: 2px solid #3a2c1a;
+            color: #3a2c1a;
+            padding: 6px 18px 6px 18px;
+            margin: 8px 0 0 0;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 2px 2px 0 #bba77a;
+        }
+        .retro-btn:active {
+            box-shadow: none;
+            background: #f9ecd7;
+        }
+        /* Scrollbar styling for retro look */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background: #e2cfa3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bba77a;
+            border: 2px solid #3a2c1a;
+        }
+        .timeline-T {
+            position: absolute;
+            left: 50%;
+            width: 36px;
+            height: 2px;
+            background: #3a2c1a;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        .timeline-T.top {
+            /* top is set inline to 48px to match the header height */
+        }
+        .timeline-T.bottom {
+            bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="window-header" style="width:100vw;box-sizing:border-box;">Battle of the Plans - Season 2</div>
+    <div class="main-layout">
+        <div class="window sidebar">
+            <div class="section-title">Leaderboard</div>
+            <div class="leaderboard">
+                <div class="leaderboard-entry" data-score="42">
+                    <img src="frontend/avatar/Anders.jpg" alt="Anders" class="leaderboard-avatar">
+                    <span>Anders</span>
+                    <div class="leaderboard-score">42</div>
+                </div>
+                <div class="leaderboard-entry" data-score="38">
+                    <img src="frontend/avatar/Armin.jpg" alt="Armin" class="leaderboard-avatar">
+                    <span>Armin</span>
+                    <div class="leaderboard-score">38</div>
+                </div>
+                <div class="leaderboard-entry" data-score="35">
+                    <img src="frontend/avatar/Kim.jpg" alt="Kim" class="leaderboard-avatar">
+                    <span>Kim</span>
+                    <div class="leaderboard-score">35</div>
+                </div>
+                <div class="leaderboard-entry" data-score="32">
+                    <img src="frontend/avatar/Lily.jpg" alt="Lily" class="leaderboard-avatar">
+                    <span>Lily</span>
+                    <div class="leaderboard-score">32</div>
+                </div>
+                <div class="leaderboard-entry" data-score="28">
+                    <img src="frontend/avatar/Thor.jpg" alt="Thor" class="leaderboard-avatar">
+                    <span>Thor</span>
+                    <div class="leaderboard-score">28</div>
+                </div>
+            </div>
+        </div>
+        <div class="window content">
+            <div class="section-title">Forecasts</div>
+            <div class="forecasts-list">
+                <div class="forecast-card" data-forecast-id="1">
+                    <div class="forecast-header">Hvor mange slutter i Origo før vi flytter til Helsfyr</div>
+                    <div class="forecast-details" id="forecast-1">
+                        <div class="forecast-meta"><span class="forecast-date">15.07.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Anders.jpg" alt="Anders" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Armin.jpg" alt="Armin" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="2">
+                    <div class="forecast-header">Blir Oslonøkkelen en del av KS</div>
+                    <div class="forecast-details" id="forecast-2">
+                        <div class="forecast-meta"><span class="forecast-date">20.08.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Kim.jpg" alt="Kim" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Lily.jpg" alt="Lily" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="3">
+                    <div class="forecast-header">Angrer Isak på oppsigelsen sin</div>
+                    <div class="forecast-details" id="forecast-3">
+                        <div class="forecast-meta"><span class="forecast-date">10.09.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Anders.jpg" alt="Anders" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="4">
+                    <div class="forecast-header">Blir Bernard sjef over Punkt</div>
+                    <div class="forecast-details" id="forecast-4">
+                        <div class="forecast-meta"><span class="forecast-date">01.10.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Armin.jpg" alt="Armin" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Kim.jpg" alt="Kim" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="5">
+                    <div class="forecast-header">Får Oslonøkkelen eget Teamrom</div>
+                    <div class="forecast-details" id="forecast-5">
+                        <div class="forecast-meta"><span class="forecast-date">15.10.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Lily.jpg" alt="Lily" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="6">
+                    <div class="forecast-header">Hva koster klokka til Mini-Tangen</div>
+                    <div class="forecast-details" id="forecast-6">
+                        <div class="forecast-meta"><span class="forecast-date">20.10.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Anders.jpg" alt="Anders" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Kim.jpg" alt="Kim" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="7">
+                    <div class="forecast-header">Hva blir den nye bilen til Thor</div>
+                    <div class="forecast-details" id="forecast-7">
+                        <div class="forecast-meta"><span class="forecast-date">01.11.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Armin.jpg" alt="Armin" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Lily.jpg" alt="Lily" class="prediction-avatar"><div class="prediction-text">?</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="8">
+                    <div class="forecast-header">Will the Q4 marketing campaign launch?</div>
+                    <div class="forecast-details" id="forecast-8">
+                        <div class="forecast-meta"><span class="forecast-date">10.11.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">Yes, big splash</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Anders.jpg" alt="Anders" class="prediction-avatar"><div class="prediction-text">No, postponed</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="9">
+                    <div class="forecast-header">Will the team win an industry award?</div>
+                    <div class="forecast-details" id="forecast-9">
+                        <div class="forecast-meta"><span class="forecast-date">20.11.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Kim.jpg" alt="Kim" class="prediction-avatar"><div class="prediction-text">Yes, for sure</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Armin.jpg" alt="Armin" class="prediction-avatar"><div class="prediction-text">No, not this year</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast-card" data-forecast-id="10">
+                    <div class="forecast-header">Will the company expand internationally?</div>
+                    <div class="forecast-details" id="forecast-10">
+                        <div class="forecast-meta"><span class="forecast-date">01.12.2025</span> <span>OPEN</span></div>
+                        <div class="predictions-grid">
+                            <div class="prediction-item"><img src="frontend/avatar/Lily.jpg" alt="Lily" class="prediction-avatar"><div class="prediction-text">Yes, new markets</div></div>
+                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">No, too soon</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="window timeline-section">
+            <div class="timeline-header">Forecast Timeline</div>
+            <div class="vertical-timeline">
+                <div class="timeline-vertical-line" style="top:48px;"></div>
+            </div>
+        </div>
+    </div>
+    <!-- First price under leaderboard -->
+    <div style="position:absolute;left:0;top:auto;bottom:auto;width:320px;margin-left:0;margin-top:8px;text-align:center;font-family:'Press Start 2P',monospace;font-size:13px;color:#3a2c1a;z-index:10;">
+        1.price a case of beer
+    </div>
+    <canvas id="pixel-trail-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;"></canvas>
+    <script>
+        // Accordion for forecast cards
+        document.querySelectorAll('.forecast-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Prevent toggling when clicking inside details
+                if (e.target.closest('.forecast-details')) return;
+                document.querySelectorAll('.forecast-card').forEach(c => {
+                    if (c !== card) c.classList.remove('expanded');
+                });
+                card.classList.toggle('expanded');
+            });
+        });
+        // Vertical timeline
+        function initializeVerticalTimeline() {
+            const timeline = document.querySelector('.vertical-timeline');
+            const months = [
+                { name: 'JUL', date: new Date('2025-07-01') },
+                { name: 'AUG', date: new Date('2025-08-01') },
+                { name: 'SEP', date: new Date('2025-09-01') },
+                { name: 'OCT', date: new Date('2025-10-01') },
+                { name: 'NOV', date: new Date('2025-11-01') },
+                { name: 'DEC', date: new Date('2025-12-01') }
+            ];
+            const total = months.length;
+            const timelineHeight = 584; // .vertical-timeline height
+            const headerHeight = 48; // .timeline-header + T line
+            const bottomOffset = 8; // bottom T line
+            const markerArea = timelineHeight - headerHeight - bottomOffset;
+            const dotOffset = 8; // half of .vertical-month-dot height (16px)
+            months.forEach((month, idx) => {
+                const marker = document.createElement('div');
+                marker.className = 'vertical-month-marker';
+                marker.style.top = `${headerHeight + (idx/(total-1))*markerArea - dotOffset}px`;
+                marker.innerHTML = `
+                    <div class=\"vertical-month-dot\"></div>
+                    <span class=\"vertical-month-label\">${month.name}</span>
+                `;
+                timeline.appendChild(marker);
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeVerticalTimeline();
+        });
+        // Random Letter Swap Hover Effect (inspired by Fancy Components)
+        function randomLetterSwap(el) {
+            const original = el.textContent;
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let animating = false;
+            el.addEventListener('mouseenter', () => {
+                if (animating) return;
+                animating = true;
+                let frame = 0;
+                const maxFrames = 12;
+                const interval = setInterval(() => {
+                    el.textContent = original.split('').map((c, i) => {
+                        if (c === ' ') return ' ';
+                        if (frame < maxFrames && Math.random() < 0.5) {
+                            return chars[Math.floor(Math.random() * chars.length)];
+                        }
+                        return original[i];
+                    }).join('');
+                    frame++;
+                    if (frame > maxFrames) {
+                        clearInterval(interval);
+                        el.textContent = original;
+                        animating = false;
+                    }
+                }, 30);
+            });
+            el.addEventListener('mouseleave', () => {
+                el.textContent = original;
+                animating = false;
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var mainHeader = document.querySelector('.window-header');
+            if (mainHeader) randomLetterSwap(mainHeader);
+        });
+        // Pixel Trail Effect (inspired by Fancy Components)
+        const pixelSize = 18;
+        const fadeDuration = 500; // ms
+        const pixelColor = '#bba77a'; // lighter brown
+        const canvas = document.getElementById('pixel-trail-canvas');
+        const ctx = canvas.getContext('2d');
+        let pixels = [];
+        function resizeCanvas() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        document.addEventListener('mousemove', e => {
+          const x = Math.floor(e.clientX / pixelSize) * pixelSize;
+          const y = Math.floor(e.clientY / pixelSize) * pixelSize;
+          pixels.push({x, y, t: Date.now()});
+        });
+        function drawTrail() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const now = Date.now();
+          pixels = pixels.filter(p => now - p.t < fadeDuration);
+          for (const p of pixels) {
+            const alpha = 1 - (now - p.t) / fadeDuration;
+            ctx.fillStyle = `rgba(187,167,122,${alpha})`;
+            ctx.fillRect(p.x, p.y, pixelSize, pixelSize);
+          }
+          requestAnimationFrame(drawTrail);
+        }
+        drawTrail();
+        // Scramble Hover Effect (inspired by Fancy Components)
+        function scrambleHover(el) {
+          const original = el.textContent;
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
+          let animating = false;
+          el.addEventListener('mouseenter', () => {
+            if (animating) return;
+            animating = true;
+            let frame = 0;
+            const maxFrames = 14;
+            const interval = setInterval(() => {
+              el.textContent = original.split('').map((c, i) => {
+                if (c === ' ') return ' ';
+                if (frame < maxFrames && Math.random() < 0.6) {
+                  return chars[Math.floor(Math.random() * chars.length)];
+                }
+                return original[i];
+              }).join('');
+              frame++;
+              if (frame > maxFrames) {
+                clearInterval(interval);
+                el.textContent = original;
+                animating = false;
+              }
+            }, 28);
+          });
+          el.addEventListener('mouseleave', () => {
+            el.textContent = original;
+            animating = false;
+          });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+          document.querySelectorAll('.window-header, .section-title, .timeline-header').forEach(scrambleHover);
+        });
+        
+        // Avatar Hover Effect with Edge Detection
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatars = document.querySelectorAll('.leaderboard-avatar, .prediction-avatar');
+            
+            avatars.forEach(avatar => {
+                avatar.addEventListener('mouseenter', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const padding = 32;
+                    
+                    // Check if avatar is near screen edges
+                    if (rect.left < padding) {
+                        this.style.transformOrigin = 'left center';
+                    } else if (window.innerWidth - rect.right < padding) {
+                        this.style.transformOrigin = 'right center';
+                    } else {
+                        this.style.transformOrigin = 'center';
+                    }
+                });
+                
+                avatar.addEventListener('mouseleave', function(e) {
+                    this.style.transformOrigin = 'center';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

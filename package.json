@@ -1,0 +1,16 @@
+{
+  "name": "battle-of-plans",
+  "version": "1.0.0",
+  "description": "A forecasting game where users can create plans with multiple forecasts",
+  "scripts": {
+    "install:all": "npm run install:frontend && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "start:frontend": "cd frontend && npm start",
+    "start:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+} 
