@@ -324,12 +324,7 @@
     </style>
 </head>
 <body>
-    <div class="window-header" style="width:100vw;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;">
-        <span>Battle of the Plans - Season 2</span>
-        <a href="submit.html" style="background: #bba77a; color: #3a2c1a; text-decoration: none; padding: 4px 8px; border: 2px solid #3a2c1a; font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; transition: background 0.2s;">
-            Submit Forecast
-        </a>
-    </div>
+    <div class="window-header" style="width:100vw;box-sizing:border-box;">Battle of the Plans - Season 2</div>
     <div class="main-layout">
         <div class="window sidebar">
             <div class="section-title">Leaderboard</div>
@@ -477,6 +472,12 @@
     <!-- First price under leaderboard -->
     <div style="position:absolute;left:0;top:auto;bottom:auto;width:320px;margin-left:0;margin-top:8px;text-align:center;font-family:'Press Start 2P',monospace;font-size:13px;color:#3a2c1a;z-index:10;">
         1.price a case of beer
+    </div>
+    <!-- Submit forecast button -->
+    <div style="position:absolute;left:0;top:auto;bottom:auto;width:320px;margin-left:0;margin-top:32px;text-align:center;z-index:10;">
+        <a href="submit.html" style="background: #bba77a; color: #3a2c1a; text-decoration: none; padding: 6px 12px; border: 2px solid #3a2c1a; font-family:'Press Start 2P',monospace; font-size: 11px; font-weight: bold; letter-spacing: 1px; transition: background 0.2s;">
+            Submit Forecast
+        </a>
     </div>
     <canvas id="pixel-trail-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;"></canvas>
     <script>
