@@ -588,6 +588,53 @@
           requestAnimationFrame(drawTrail);
         }
         drawTrail();
+        
+        // Load and display predictions from localStorage
+        function loadPredictions() {
+            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
+            
+            predictions.forEach(prediction => {
+                const forecastCard = document.querySelector(`[data-forecast-id="${prediction.forecastId}"]`);
+                if (forecastCard) {
+                    const predictionsGrid = forecastCard.querySelector('.predictions-grid');
+                    if (predictionsGrid) {
+                        // Check if this person already has a prediction for this forecast
+                        const existingPrediction = predictionsGrid.querySelector(`[data-name="${prediction.name}"]`);
+                        if (existingPrediction) {
+                            // Update existing prediction
+                            const predictionText = existingPrediction.querySelector('.prediction-text');
+                            if (predictionText) {
+                                predictionText.textContent = prediction.prediction;
+                            }
+                        } else {
+                            // Add new prediction
+                            const predictionItem = document.createElement('div');
+                            predictionItem.className = 'prediction-item';
+                            predictionItem.setAttribute('data-name', prediction.name);
+                            
+                            const avatar = document.createElement('img');
+                            avatar.src = `frontend/avatar/${prediction.name}.jpg`;
+                            avatar.alt = prediction.name;
+                            avatar.className = 'prediction-avatar';
+                            
+                            const predictionText = document.createElement('div');
+                            predictionText.className = 'prediction-text';
+                            predictionText.textContent = prediction.prediction;
+                            
+                            predictionItem.appendChild(avatar);
+                            predictionItem.appendChild(predictionText);
+                            predictionsGrid.appendChild(predictionItem);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Load predictions when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPredictions();
+        });
+        
         // Scramble Hover Effect (inspired by Fancy Components)
         function scrambleHover(el) {
           const original = el.textContent;
