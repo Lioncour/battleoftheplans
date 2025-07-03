@@ -136,6 +136,49 @@
             <button onclick="setToken()">Set Token</button>
         </div>
         
+        <h3>Timeline Configuration</h3>
+        <form id="timelineForm">
+            <div class="form-group">
+                <label for="startMonth">Start Month</label>
+                <select id="startMonth" required>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7" selected>July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="endMonth">End Month</label>
+                <select id="endMonth" required>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12" selected>December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="timelineYear">Year</label>
+                <input type="number" id="timelineYear" value="2025" min="2020" max="2030" required>
+            </div>
+            <button type="submit">Update Timeline</button>
+        </form>
+        
         <h3>Add New Forecast</h3>
         <form id="addForecastForm">
             <div class="form-group">
@@ -216,6 +259,22 @@
             } else if (forecastType === 'list') {
                 listOptionsGroup.style.display = 'block';
             }
+        }
+        
+        function loadTimelineConfig() {
+            const config = JSON.parse(localStorage.getItem('timelineConfig') || '{"startMonth": 7, "endMonth": 12, "year": 2025}');
+            document.getElementById('startMonth').value = config.startMonth;
+            document.getElementById('endMonth').value = config.endMonth;
+            document.getElementById('timelineYear').value = config.year;
+        }
+        
+        function saveTimelineConfig() {
+            const config = {
+                startMonth: parseInt(document.getElementById('startMonth').value),
+                endMonth: parseInt(document.getElementById('endMonth').value),
+                year: parseInt(document.getElementById('timelineYear').value)
+            };
+            localStorage.setItem('timelineConfig', JSON.stringify(config));
         }
         
         async function createGitHubIssue(title, body, labels = []) {
@@ -373,6 +432,23 @@
             }
         }
         
+        document.getElementById('timelineForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const startMonth = parseInt(document.getElementById('startMonth').value);
+            const endMonth = parseInt(document.getElementById('endMonth').value);
+            const year = parseInt(document.getElementById('timelineYear').value);
+            
+            // Validate that end month is after start month
+            if (endMonth <= startMonth) {
+                showStatus('End month must be after start month', 'error');
+                return;
+            }
+            
+            saveTimelineConfig();
+            showStatus('Timeline configuration saved!');
+        });
+        
         document.getElementById('addForecastForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -414,9 +490,10 @@
             }
         });
         
-        // Load forecasts on page load
+        // Load forecasts and timeline config on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadForecasts();
+            loadTimelineConfig();
         });
     </script>
 </body>
