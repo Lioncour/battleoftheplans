@@ -359,6 +359,11 @@
                     <span>Thor</span>
                     <div class="leaderboard-score">28</div>
                 </div>
+                <div class="leaderboard-entry" data-score="25">
+                    <img src="frontend/avatar/Isak.png" alt="Isak" class="leaderboard-avatar">
+                    <span>Isak</span>
+                    <div class="leaderboard-score">25</div>
+                </div>
             </div>
 
         </div>
@@ -604,7 +609,7 @@
                     
                     // Extract name from labels
                     const nameLabel = issue.labels.find(label => 
-                        ['anders', 'armin', 'kim', 'lily', 'mamen', 'thor'].includes(label.name.toLowerCase())
+                        ['anders', 'armin', 'kim', 'lily', 'mamen', 'thor', 'isak'].includes(label.name.toLowerCase())
                     );
                     if (!nameLabel) return;
                     
