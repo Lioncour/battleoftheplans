@@ -140,25 +140,74 @@
         <a href="index.html" class="back-link">&larr; Back to Battle of the Plans</a>
     </div>
     <script>
-        document.getElementById('forecastForm').addEventListener('submit', function(e) {
+        const REPO_OWNER = 'Lioncour';
+        const REPO_NAME = 'battleoftheplans';
+        
+        async function createPredictionIssue(name, forecastId, prediction) {
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                alert('GitHub token not set. Please set it in the admin panel first.');
+                return null;
+            }
+            
+            const forecastTitles = {
+                '1': 'Hvor mange slutter i Origo før vi flytter til Helsfyr',
+                '2': 'Blir Oslonøkkelen en del av KS',
+                '3': 'Angrer Isak på oppsigelsen sin',
+                '4': 'Blir Bernard sjef over Punkt',
+                '5': 'Får Oslonøkkelen eget Teamrom',
+                '6': 'Hva koster klokka til Mini-Tangen',
+                '7': 'Hva blir den nye bilen til Thor',
+                '8': 'Will the Q4 marketing campaign launch?',
+                '9': 'Will the team win an industry award?',
+                '10': 'Will the company expand internationally?'
+            };
+            
+            const title = `Prediction by ${name}`;
+            const body = `**Forecast:** ${forecastTitles[forecastId]}\n**Prediction:** ${prediction}\n**Submitted:** ${new Date().toISOString()}`;
+            const labels = ['prediction', `forecast-${forecastId}`, name.toLowerCase()];
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        body: body,
+                        labels: labels
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error creating prediction:', error);
+                alert(`Error submitting prediction: ${error.message}`);
+                return null;
+            }
+        }
+        
+        document.getElementById('forecastForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const name = document.getElementById('name').value;
             const forecast = document.getElementById('forecast').value;
             const prediction = document.getElementById('prediction').value;
             
-            // Store prediction in localStorage
-            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
-            predictions.push({
-                name: name,
-                forecastId: forecast,
-                prediction: prediction,
-                timestamp: new Date().toISOString()
-            });
-            localStorage.setItem('predictions', JSON.stringify(predictions));
+            // Create GitHub issue for the prediction
+            const issue = await createPredictionIssue(name, forecast, prediction);
             
-            this.style.display = 'none';
-            document.getElementById('thankyou').style.display = 'block';
+            if (issue) {
+                this.style.display = 'none';
+                document.getElementById('thankyou').style.display = 'block';
+            }
         });
     </script>
 </body>

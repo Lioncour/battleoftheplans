@@ -479,6 +479,12 @@
             Submit Forecast
         </a>
     </div>
+    <!-- Admin panel link -->
+    <div style="position:absolute;left:0;top:auto;bottom:auto;width:320px;margin-left:0;margin-top:48px;text-align:center;z-index:10;">
+        <a href="admin.html" style="background: #e2cfa3; color: #3a2c1a; text-decoration: none; padding: 4px 8px; border: 1px solid #3a2c1a; font-family:'Press Start 2P',monospace; font-size: 9px; font-weight: bold; letter-spacing: 1px; transition: background 0.2s;">
+            Admin Panel
+        </a>
+    </div>
     <canvas id="pixel-trail-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1;"></canvas>
     <script>
         // Accordion for forecast cards
@@ -589,45 +595,73 @@
         }
         drawTrail();
         
-        // Load and display predictions from localStorage
-        function loadPredictions() {
-            const predictions = JSON.parse(localStorage.getItem('predictions') || '[]');
-            
-            predictions.forEach(prediction => {
-                const forecastCard = document.querySelector(`[data-forecast-id="${prediction.forecastId}"]`);
-                if (forecastCard) {
-                    const predictionsGrid = forecastCard.querySelector('.predictions-grid');
-                    if (predictionsGrid) {
-                        // Check if this person already has a prediction for this forecast
-                        const existingPrediction = predictionsGrid.querySelector(`[data-name="${prediction.name}"]`);
-                        if (existingPrediction) {
-                            // Update existing prediction
-                            const predictionText = existingPrediction.querySelector('.prediction-text');
-                            if (predictionText) {
-                                predictionText.textContent = prediction.prediction;
-                            }
-                        } else {
-                            // Add new prediction
-                            const predictionItem = document.createElement('div');
-                            predictionItem.className = 'prediction-item';
-                            predictionItem.setAttribute('data-name', prediction.name);
-                            
-                            const avatar = document.createElement('img');
-                            avatar.src = `frontend/avatar/${prediction.name}.jpg`;
-                            avatar.alt = prediction.name;
-                            avatar.className = 'prediction-avatar';
-                            
-                            const predictionText = document.createElement('div');
-                            predictionText.className = 'prediction-text';
-                            predictionText.textContent = prediction.prediction;
-                            
-                            predictionItem.appendChild(avatar);
-                            predictionItem.appendChild(predictionText);
-                            predictionsGrid.appendChild(predictionItem);
-                        }
-                    }
+        // Load and display predictions from GitHub Issues
+        async function loadPredictions() {
+            try {
+                const response = await fetch('https://api.github.com/repos/Lioncour/battleoftheplans/issues?labels=prediction&state=all');
+                if (!response.ok) {
+                    console.error('Failed to load predictions from GitHub');
+                    return;
                 }
-            });
+                
+                const issues = await response.json();
+                
+                issues.forEach(issue => {
+                    // Extract forecast ID from labels
+                    const forecastLabel = issue.labels.find(label => label.name.startsWith('forecast-'));
+                    if (!forecastLabel) return;
+                    
+                    const forecastId = forecastLabel.name.replace('forecast-', '');
+                    const forecastCard = document.querySelector(`[data-forecast-id="${forecastId}"]`);
+                    if (!forecastCard) return;
+                    
+                    const predictionsGrid = forecastCard.querySelector('.predictions-grid');
+                    if (!predictionsGrid) return;
+                    
+                    // Extract name from labels
+                    const nameLabel = issue.labels.find(label => 
+                        ['anders', 'armin', 'kim', 'lily', 'thor'].includes(label.name.toLowerCase())
+                    );
+                    if (!nameLabel) return;
+                    
+                    const name = nameLabel.name.charAt(0).toUpperCase() + nameLabel.name.slice(1);
+                    
+                    // Extract prediction from issue body
+                    const bodyLines = issue.body.split('\n');
+                    const predictionLine = bodyLines.find(line => line.startsWith('**Prediction:**'));
+                    const prediction = predictionLine ? predictionLine.replace('**Prediction:**', '').trim() : '?';
+                    
+                    // Check if this person already has a prediction for this forecast
+                    const existingPrediction = predictionsGrid.querySelector(`[data-name="${name}"]`);
+                    if (existingPrediction) {
+                        // Update existing prediction
+                        const predictionText = existingPrediction.querySelector('.prediction-text');
+                        if (predictionText) {
+                            predictionText.textContent = prediction;
+                        }
+                    } else {
+                        // Add new prediction
+                        const predictionItem = document.createElement('div');
+                        predictionItem.className = 'prediction-item';
+                        predictionItem.setAttribute('data-name', name);
+                        
+                        const avatar = document.createElement('img');
+                        avatar.src = `frontend/avatar/${name}.jpg`;
+                        avatar.alt = name;
+                        avatar.className = 'prediction-avatar';
+                        
+                        const predictionText = document.createElement('div');
+                        predictionText.className = 'prediction-text';
+                        predictionText.textContent = prediction;
+                        
+                        predictionItem.appendChild(avatar);
+                        predictionItem.appendChild(predictionText);
+                        predictionsGrid.appendChild(predictionItem);
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading predictions:', error);
+            }
         }
         
         // Load predictions when page loads

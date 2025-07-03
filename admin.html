@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle of Plans - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #f5e6c5;
+            color: #3a2c1a;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            text-transform: uppercase;
+            margin: 0;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f9ecd7;
+            border: 4px solid #3a2c1a;
+            padding: 20px;
+        }
+        .admin-header {
+            background: #e2cfa3;
+            border-bottom: 3px double #3a2c1a;
+            padding: 8px 16px;
+            margin: -20px -20px 20px -20px;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #bba77a;
+            border-radius: 4px;
+            background: #fff6e0;
+            color: #3a2c1a;
+            font-family: inherit;
+            font-size: 11px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #bba77a;
+            color: #3a2c1a;
+            border: 2px solid #3a2c1a;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        button:hover {
+            background: #e2cfa3;
+        }
+        .forecast-list {
+            margin-top: 20px;
+        }
+        .forecast-item {
+            border: 2px solid #3a2c1a;
+            background: #fff6e0;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .forecast-info {
+            flex: 1;
+        }
+        .forecast-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .forecast-meta {
+            font-size: 10px;
+            color: #7c6a4a;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3a2c1a;
+            text-decoration: none;
+            font-size: 11px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .status {
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-header">Battle of Plans - Admin Panel</div>
+        
+        <a href="index.html" class="back-link">← Back to Main Page</a>
+        
+        <div id="status"></div>
+        
+        <h3>GitHub Token Setup</h3>
+        <p style="font-size: 11px; text-transform: none;">
+            To use this admin panel, you need a GitHub Personal Access Token.<br>
+            1. Go to GitHub Settings > Developer settings > Personal access tokens<br>
+            2. Generate a new token with 'repo' permissions<br>
+            3. Set it here:
+        </p>
+        <div class="form-group">
+            <input type="password" id="githubToken" placeholder="Enter your GitHub token">
+            <button onclick="setToken()">Set Token</button>
+        </div>
+        
+        <h3>Add New Forecast</h3>
+        <form id="addForecastForm">
+            <div class="form-group">
+                <label for="title">Forecast Title</label>
+                <input type="text" id="title" required maxlength="100">
+            </div>
+            <div class="form-group">
+                <label for="date">Due Date</label>
+                <input type="date" id="date" required>
+            </div>
+            <div class="form-group">
+                <label for="type">Type</label>
+                <select id="type" required>
+                    <option value="">Select type...</option>
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="RESOLVED">Resolved</option>
+                </select>
+            </div>
+            <button type="submit">Add Forecast</button>
+        </form>
+        
+        <h3>Manage Existing Forecasts</h3>
+        <div id="forecastList" class="forecast-list">
+            <!-- Forecasts will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        const REPO_OWNER = 'Lioncour';
+        const REPO_NAME = 'battleoftheplans';
+        
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+        
+        function setToken() {
+            const token = document.getElementById('githubToken').value;
+            if (token) {
+                localStorage.setItem('github_token', token);
+                showStatus('GitHub token saved!');
+                document.getElementById('githubToken').value = '';
+            } else {
+                showStatus('Please enter a token', 'error');
+            }
+        }
+        
+        async function createGitHubIssue(title, body, labels = []) {
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                showStatus('GitHub token not set. Please set it above.', 'error');
+                return null;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        body: body,
+                        labels: labels
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error creating GitHub issue:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+        
+        async function loadForecasts() {
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                showStatus('GitHub token not set. Please set it above.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues?labels=forecast&state=all`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                const issues = await response.json();
+                displayForecasts(issues);
+            } catch (error) {
+                console.error('Error loading forecasts:', error);
+                showStatus(`Error loading forecasts: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayForecasts(issues) {
+            const forecastList = document.getElementById('forecastList');
+            forecastList.innerHTML = '';
+            
+            issues.forEach(issue => {
+                const forecastItem = document.createElement('div');
+                forecastItem.className = 'forecast-item';
+                
+                const labels = issue.labels.map(l => l.name).join(', ');
+                const state = issue.state === 'closed' ? 'CLOSED' : 'OPEN';
+                
+                forecastItem.innerHTML = `
+                    <div class="forecast-info">
+                        <div class="forecast-title">${issue.title}</div>
+                        <div class="forecast-meta">ID: ${issue.number} | State: ${state} | Labels: ${labels}</div>
+                    </div>
+                    <div>
+                        <button onclick="closeForecast(${issue.number})">Close</button>
+                        <button onclick="deleteForecast(${issue.number})">Delete</button>
+                    </div>
+                `;
+                
+                forecastList.appendChild(forecastItem);
+            });
+        }
+        
+        async function closeForecast(issueNumber) {
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                showStatus('GitHub token not set', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${issueNumber}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        state: 'closed'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                showStatus('Forecast closed successfully');
+                loadForecasts();
+            } catch (error) {
+                console.error('Error closing forecast:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function deleteForecast(issueNumber) {
+            if (!confirm('Are you sure you want to delete this forecast?')) {
+                return;
+            }
+            
+            const token = localStorage.getItem('github_token');
+            if (!token) {
+                showStatus('GitHub token not set', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/issues/${issueNumber}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        state: 'closed'
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`GitHub API error: ${response.status}`);
+                }
+                
+                showStatus('Forecast deleted successfully');
+                loadForecasts();
+            } catch (error) {
+                console.error('Error deleting forecast:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+            }
+        }
+        
+        document.getElementById('addForecastForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('title').value;
+            const date = document.getElementById('date').value;
+            const type = document.getElementById('type').value;
+            
+            const body = `Due Date: ${date}\nType: ${type}\n\nThis is a forecast for the Battle of Plans game.`;
+            const labels = ['forecast', type.toLowerCase()];
+            
+            const issue = await createGitHubIssue(title, body, labels);
+            
+            if (issue) {
+                showStatus('Forecast added successfully!');
+                this.reset();
+                loadForecasts();
+            }
+        });
+        
+        // Load forecasts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadForecasts();
+        });
+    </script>
+</body>
+</html> 
