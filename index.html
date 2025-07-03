@@ -349,6 +349,11 @@
                     <span>Lily</span>
                     <div class="leaderboard-score">32</div>
                 </div>
+                <div class="leaderboard-entry" data-score="29">
+                    <img src="frontend/avatar/Mamen.png" alt="Mamen" class="leaderboard-avatar">
+                    <span>Mamen</span>
+                    <div class="leaderboard-score">29</div>
+                </div>
                 <div class="leaderboard-entry" data-score="28">
                     <img src="frontend/avatar/Thor.jpg" alt="Thor" class="leaderboard-avatar">
                     <span>Thor</span>
@@ -430,36 +435,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="forecast-card" data-forecast-id="8">
-                    <div class="forecast-header">Will the Q4 marketing campaign launch?</div>
-                    <div class="forecast-details" id="forecast-8">
-                        <div class="forecast-meta"><span class="forecast-date">10.11.2025</span> <span>OPEN</span></div>
-                        <div class="predictions-grid">
-                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">Yes, big splash</div></div>
-                            <div class="prediction-item"><img src="frontend/avatar/Anders.jpg" alt="Anders" class="prediction-avatar"><div class="prediction-text">No, postponed</div></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="forecast-card" data-forecast-id="9">
-                    <div class="forecast-header">Will the team win an industry award?</div>
-                    <div class="forecast-details" id="forecast-9">
-                        <div class="forecast-meta"><span class="forecast-date">20.11.2025</span> <span>OPEN</span></div>
-                        <div class="predictions-grid">
-                            <div class="prediction-item"><img src="frontend/avatar/Kim.jpg" alt="Kim" class="prediction-avatar"><div class="prediction-text">Yes, for sure</div></div>
-                            <div class="prediction-item"><img src="frontend/avatar/Armin.jpg" alt="Armin" class="prediction-avatar"><div class="prediction-text">No, not this year</div></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="forecast-card" data-forecast-id="10">
-                    <div class="forecast-header">Will the company expand internationally?</div>
-                    <div class="forecast-details" id="forecast-10">
-                        <div class="forecast-meta"><span class="forecast-date">01.12.2025</span> <span>OPEN</span></div>
-                        <div class="predictions-grid">
-                            <div class="prediction-item"><img src="frontend/avatar/Lily.jpg" alt="Lily" class="prediction-avatar"><div class="prediction-text">Yes, new markets</div></div>
-                            <div class="prediction-item"><img src="frontend/avatar/Thor.jpg" alt="Thor" class="prediction-avatar"><div class="prediction-text">No, too soon</div></div>
-                        </div>
-                    </div>
-                </div>
+
             </div>
         </div>
         <div class="window timeline-section">
@@ -620,7 +596,7 @@
                     
                     // Extract name from labels
                     const nameLabel = issue.labels.find(label => 
-                        ['anders', 'armin', 'kim', 'lily', 'thor'].includes(label.name.toLowerCase())
+                        ['anders', 'armin', 'kim', 'lily', 'mamen', 'thor'].includes(label.name.toLowerCase())
                     );
                     if (!nameLabel) return;
                     
