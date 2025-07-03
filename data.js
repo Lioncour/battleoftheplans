@@ -42,6 +42,13 @@ const appData = {
       email: "gimse@example.com",
       score: 0,
       avatar: "avatar/gimse.png"
+    },
+    {
+      id: "7",
+      name: "Isak",
+      email: "isak@example.com",
+      score: 0,
+      avatar: "avatar/Isak.png"
     }
   ],
   forecasts: [
